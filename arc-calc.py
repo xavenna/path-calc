@@ -9,15 +9,20 @@ class Vec3:
         y=0
         z=0
 
+def scale(v, len):
+    n = Vec3()
+    s = len/(math.sqrt(v.x**2 + v.y**2 + v.z**2))
+    n.x = v.x * s
+    n.y = v.y * s
+    n.z = v.z * s
+    return n;
+
 def project(p, k, u):
     #Projects point p onto the plane, given by normal vector u and point k
     n = Vec3()
     v = Vec3()
     J = Vec3()
-    s = 1/(math.sqrt(u.x**2 + u.y**2 + u.z**2))
-    n.x = u.x * s
-    n.y = u.y * s
-    n.z = u.z * s
+    n = scale(u, 1)
 
     v.x = p.x - k.x
     v.y = p.y - k.y
@@ -28,9 +33,27 @@ def project(p, k, u):
     J.y = p.y - d*n.y
     J.z = p.z - d*n.z
 
-    #print(J.x, J.y, J.z)
     return J
 
+def vecsum(q, w):
+    t = Vec3()
+    t.x = q.x + w.x
+    t.y = q.y + w.y
+    t.z = q.z + w.z
+    return t
+
+def vecsub(q, w):
+    t = Vec3()
+    t.x = q.x - w.x
+    t.y = q.y - w.y
+    t.z = q.z - w.z
+    return t
+
+def vecmult(v, mult):
+    t = Vec3()
+    t.x = v.x * mult
+    t.y = v.y * mult
+    t.z = v.z * mult
 
 A = Vec3()
 B = Vec3()
@@ -48,7 +71,7 @@ B.z = float(input("B.z"))
 
 th = float(input("Plane offset angle"))
 d = float(input("Distance above line"))
-#r = float(input("Control Point Linear Offset"))
+r = float(input("Control Point Linear Offset"))
 
 # find midpoint
 
@@ -58,31 +81,32 @@ K.y = (A.y + B.y) / 2
 K.z = (A.z + B.z) / 2
 
 KB = Vec3()
-KB.x = B.x - K.x
-KB.y = B.y - K.y
-KB.z = B.z - K.z
-
-#print(K.x, K.y, K.z)
-#print(KB.x, KB.y, KB.z)
-
-
-# angle between planes:
-
-#thetax = math.arccos(KB.z / (sqrt(KB.x**2 + KB.y**2 + KB.z**2)))
-# cast K to XY plane, calculate Rx and Ry (projected x&y)
-
+KB = vecsub(B, K)
 
 R = Vec3()
 R.x = K.x + d * math.sin(th*math.pi/180)
 R.y = K.y + d * math.cos(th*math.pi/180)
 R.z = K.z
 
-#print(R.x, R.y, R.z)
-
 # Project these back to the plane we are working on
 
 R = project(R, K, KB)
 
-#Rz = K.z - (KB.x / KB.z) * (R.x-K.x) - (KB.y / KB.z) * (R.y-K.y)
 
 print("Coordinates: (", f'{R.x:.6f}', ", ", f'{R.y:.6f}', ", ", f'{R.z:.6f}', ")")
+
+# Now, determine the equation for the line between the two points, in order to find the control points for the center point
+
+if r != 0:
+    M = Vec3()
+    M = vecsub(B, A)
+    M = scale(M, r)
+
+    C1 = Vec3()
+    C2 = Vec3()
+    C1 = vecsum(R, M)
+    C2 = vecsub(R, M)
+
+    print("Control Point Coordinates:")
+    print("(", f'{C1.x:.6f}', ", ", f'{C1.y:.6f}', ", ", f'{C1.z:.6f}', ")")
+    print("(", f'{C2.x:.6f}', ", ", f'{C2.y:.6f}', ", ", f'{C2.z:.6f}', ")")
